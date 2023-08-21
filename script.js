@@ -1,6 +1,4 @@
 'use strict';
-
-/////////////////////////////////////////////////
 /////////////////////////////////////////////////
 /// BANKIST APP ///
 // Data
@@ -127,16 +125,6 @@ const calculateDisplayDate = function (date, acc) {
 	return displayDate;
 }
 
-// const fullDateSpring = function (passedDate) {
-// 	const day = `${passedDate.getDate()}`.padStart(2, '0');
-// 	const month = `${passedDate.getMonth() + 1}`.padStart(2, '0');
-// 	const year = passedDate.getFullYear();
-// 	const hour = `${passedDate.getHours()}`.padStart(2, '0');
-// 	const minute = `${passedDate.getMinutes()}`.padStart(2, '0');
-// 	return `${day}/${month}/${year}, ${hour}:${minute}`;
-
-// }
-
 const displayMovements = function (acc, toBeSorted = false) {
 	containerMovements.innerHTML = ``;
 	let moves;
@@ -164,11 +152,10 @@ const displayMovements = function (acc, toBeSorted = false) {
 		<div class="movements__row">
           <div class="movements__type movements__type--${type}">${i + 1} ${type}</div>
 		  <div class="movements__date">${displayDate}</div>
-          <div class="movements__value">${formattedMov}€</div>
+          <div class="movements__value">${formattedMov}</div>
         </div>
 		`;
 		containerMovements.insertAdjacentHTML("afterbegin", html);
-		console.log(mov);
 	})
 
 	document.querySelectorAll(`div.movements__type--deposit + div.movements__date`).forEach(tag => {
@@ -247,6 +234,31 @@ const updateUI = function (currentAccnt) {
 	calcDisplaySummary(currentAccnt);
 }
 
+let timerIdHolder;
+const startLogOutTimer = function () {
+	if (timerIdHolder) {
+		clearInterval(timerIdHolder);
+	}
+	let sessionLength = 5 * 60;
+	let mins, secs;
+	labelTimer.textContent = `05:00`;
+	const timedId = setInterval(function () {
+		sessionLength--;
+		mins = `${Math.floor(sessionLength / 60)}`.padStart(2, `0`);
+		secs = `${sessionLength % 60}`.padStart(2, `0`);
+		labelTimer.textContent = `${mins}:${secs}`;
+		if (sessionLength === 0) {
+			clearTimeout(timedId);
+			setTimeout(() => {
+				alert(`You session has has been expired! You will be logged out now!`);
+				containerApp.style.opacity = 0;
+			})
+		}
+	}, 1000)
+	timerIdHolder = timedId;
+}
+////////////////////////////
+// EVENT HANDLERS
 let sorted = false;
 let currentAccount;
 
@@ -260,6 +272,7 @@ btnLogin.addEventListener(`click`, function (event) {
 		// Display UI and Welcome message!
 		labelWelcome.textContent = `Welcome back, ${currentAccount.owner.split(` `)[0]}`;
 		containerApp.style.opacity = 1;
+		startLogOutTimer();
 	} else {
 		alert(`Wrong username or/and password!`);
 	}
@@ -295,7 +308,17 @@ btnClose.addEventListener("click", function (event) {
 		accounts.splice(myIndex, 1);
 		containerApp.style.opacity = 0;
 		labelWelcome.textContent = `Log in to get started`;
+		clearInterval(timerIdHolder);
+		inputLoginUsername.value = '';
+		inputLoginPin.value = '';
+		inputTransferTo.value = '';
+		inputTransferAmount.value = '';
+		inputLoanAmount.value = '';
+		inputCloseUsername.value = '';
+		inputClosePin.value = '';
 		alert("Your account was deleted!");
+
+
 	} else {
 		alert(`Provided details are not correct!`);
 	}
@@ -305,9 +328,11 @@ btnLoan.addEventListener(`click`, function (event) {
 	event.preventDefault();
 	const loanRequest = Math.floor(inputLoanAmount.value);
 	if (loanRequest > 0 && currentAccount.movements.some(mov => mov >= loanRequest * 0.1)) {
-		currentAccount.movements.push(loanRequest);
-		currentAccount.movementsDates.push(new Date().toISOString());
-		updateUI(currentAccount);
+		setTimeout(function () {
+			currentAccount.movements.push(loanRequest);
+			currentAccount.movementsDates.push(new Date().toISOString());
+			updateUI(currentAccount);
+		}, 1500)
 		inputLoanAmount.value = ``;
 		inputLoanAmount.blur();
 	} else {
@@ -329,6 +354,10 @@ btnSort.addEventListener(`click`, function (event) {
 		displayMovements(currentAccount, true);
 		sorted = true;
 	}
+})
+
+document.body.addEventListener(`mouseover`, function () {
+	startLogOutTimer();
 })
 
 

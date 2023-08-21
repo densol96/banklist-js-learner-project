@@ -1,14 +1,19 @@
-// Creating Dates 
+// Creating Timer
 
-const amount = 2354.5;
-const options = {
-    style: `currency`,
-    currency: 'USD',
-    useGrouping: false
-}
+let sessionLength = 1 * 60;
 
-const americanAmount = new Intl.NumberFormat('en-US', options).format(amount);
-const britishAmount = new Intl.NumberFormat('ru-RU', options).format(amount);
+// const startLogOutTimes = function() {
 
-console.log(`US format:\t`, americanAmount);
-console.log(`UK format:\t`, americanAmount);
+// }
+let mins = Math.floor(sessionLength / 60);
+let secs = sessionLength % 60;
+const timedId = setInterval(function () {
+    sessionLength--;
+    mins = `${Math.floor(sessionLength / 60)}`.padStart(2, `0`);
+    secs = `${sessionLength % 60}`.padStart(2, `0`);
+    console.log(mins, secs);
+    if (mins === 0 && secs === 0) {
+        clearTimeout(timedId);
+    }
+}, 1000)
+console.log(mins, secs);
